@@ -89,6 +89,7 @@ namespace ProAgil.API.Controllers
             }
         }
 
+
         [HttpGet("GetUser")]
         public async Task<IActionResult> GetUser(){
             try
