@@ -1,3 +1,4 @@
+import { isNull } from '@angular/compiler/src/output/output_ast';
 import { unsupported } from '@angular/compiler/src/render3/view/util';
 import { Component } from '@angular/core';
 import { User } from './models/identity/User';

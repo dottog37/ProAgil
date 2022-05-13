@@ -83,6 +83,7 @@ export class PerfilComponent implements OnInit {
       }
     ).add(this.spinner.hide);
   }
+
   public resetForm(event: any): void {
     event.preventDefault();
     this.form.reset();
