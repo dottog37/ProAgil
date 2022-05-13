@@ -51,7 +51,11 @@ namespace ProAgil.API.Controllers
                 
                 var user = await accountService.CreateAccountAsync(userDto);
                 if (user != null)
-                    return Ok(user);
+                    return Ok(new {
+                    userName = user.UserName,
+                    PrimeiroNome = user.PrimeiroNome,
+                    token = tokenService.CreateToken(user).Result
+                });
 
                 return BadRequest("Usuário não criado, tente novamente mais tarde");
             }
@@ -109,6 +113,9 @@ namespace ProAgil.API.Controllers
         public async Task<IActionResult> UpdateUser(UserUpdateDto userUpdateDto){
             try
             {
+                if (userUpdateDto.UserName != User.GetUserName()){
+                    return Unauthorized("Usuário inválido");
+                }
                 var user = await accountService.GetUserByUserNameAsync(User.GetUserName());
                 if (user == null)
                     return Unauthorized("Usuário inválido!");
@@ -117,7 +124,11 @@ namespace ProAgil.API.Controllers
                 if (userReturn == null)
                     return NoContent();
                 
-                return Ok(userReturn);
+                return Ok(new {
+                    userName = userReturn.UserName,
+                    PrimeiroNome = userReturn.PrimeiroNome,
+                    token = tokenService.CreateToken(userReturn).Result
+                });
             }
             catch (System.Exception ex)
             {
