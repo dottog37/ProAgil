@@ -12,6 +12,7 @@ using ProAgil.Application.Contratos;
 using ProAgil.Application.Dtos;
 
 using ProAgil.Persistence.Contextos;
+using ProAgil.Persistence.Models;
 
 namespace ProAgil.API.Controllers
 {
@@ -40,15 +41,15 @@ namespace ProAgil.API.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get([FromQuery]PageParams pageParams)
         {
             try
             {
-                var eventos = await eventoService.GetAllEventosAsync(User.GetUserId(), true);
+                var eventos = await eventoService.GetAllEventosAsync(User.GetUserId(), pageParams, true);
                 
                 if (eventos == null) return NoContent();
 
-
+                Response.AddPagination(eventos.CurrentPage, eventos.PageSize, eventos.TotalCount, eventos.TotalPages);
                 return Ok(eventos);
             }
             catch (Exception ex)
@@ -77,23 +78,6 @@ namespace ProAgil.API.Controllers
             }
         }
 
-        [HttpGet("{tema}/tema")]
-        public async Task<IActionResult> GetByTema(string tema)
-        {
-            try
-            {
-                var evento = await eventoService.GetAllEventosByTemaAsync(User.GetUserId(), tema, true);
-                if (evento == null) return NoContent();
-
-                return Ok(evento);
-            }
-            catch (Exception ex)
-            {
-                return this.StatusCode(StatusCodes.Status500InternalServerError,
-                $"Erro ao tentar recuperar evento. Erro{ex.Message}");
-                throw new Exception(ex.Message);
-            }
-        }
 
         [HttpPost]
         public async Task<IActionResult> Post(EventoDto model)

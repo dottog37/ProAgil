@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ProAgil.Domain;
 using ProAgil.Persistence.Contextos;
+using ProAgil.Persistence.Models;
 
 namespace ProAgil.Persistence.Contratos
 {
@@ -16,21 +17,7 @@ namespace ProAgil.Persistence.Contratos
 
         }
         
-        public async Task<Evento[]> GetAllEventosAsync(int userId, bool includePalestrate = false)
-        {
-            IQueryable<Evento> query = _context.Eventos.Include(e=>e.Lote).Include(e=>e.RedesSociais);
-
-            if(includePalestrate){
-                query = query.Include(e=>e.PalestranteEventos).ThenInclude(pe=>pe.Palestrante);
-            }
-
-            query=query.AsNoTracking().Where(e=>e.UserId==userId).OrderBy(e=>e.Id);
-
-            return await query.ToArrayAsync();
-
-        }
-
-        public async Task<Evento[]> GetAllEventosByTemaAsync(int userId, string tema, bool includePalestrate = false)
+        public async Task<PageList<Evento>> GetAllEventosAsync(int userId, PageParams pageParams, bool includePalestrate = false)
         {
             IQueryable<Evento> query = _context.Eventos.Include(e=>e.Lote).Include(e=>e.RedesSociais);
 
@@ -39,11 +26,15 @@ namespace ProAgil.Persistence.Contratos
             }
 
             query=query.AsNoTracking()
-                        .OrderBy(e=>e.Id)
-                        .Where(e=>e.Tema.ToLower().Contains(tema.ToLower()) && e.UserId==userId);
-            
-            return await query.ToArrayAsync();       
+            .Where(e=>e.Tema.ToLower().Contains(pageParams.Term.ToLower()) && e.UserId==userId &&
+                                         e.UserId==userId)
+                                         .OrderBy(e=>e.Id);
+
+            return await PageList<Evento>.CreateAsync(query, pageParams.PageNumber, pageParams.pageSize);
+
         }
+
+
         public async Task<Evento> GetEventoByIdAsync(int userId, int EventoId, bool includePalestrate = false)
         {
             IQueryable<Evento> query = _context.Eventos.Include(e=>e.Lote).Include(e=>e.RedesSociais);

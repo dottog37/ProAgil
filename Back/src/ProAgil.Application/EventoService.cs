@@ -6,6 +6,7 @@ using ProAgil.Application.Contratos;
 using ProAgil.Application.Dtos;
 using ProAgil.Domain;
 using ProAgil.Persistence.Contratos;
+using ProAgil.Persistence.Models;
 
 namespace ProAgil.Application
 {
@@ -84,13 +85,17 @@ namespace ProAgil.Application
             }
         }
 
-        public async Task<EventoDto[]> GetAllEventosAsync(int userId, bool includePalestrate)
+        public async Task<PageList<EventoDto>> GetAllEventosAsync(int userId, PageParams pageParams, bool includePalestrate)
         {
             try
             {
-                var eventos = await _eventoPersist.GetAllEventosAsync(userId, includePalestrate);
+                var eventos = await _eventoPersist.GetAllEventosAsync(userId, pageParams, includePalestrate);
                 if (eventos==null) return null;
-                var resultado = _mapper.Map<EventoDto[]>(eventos);
+                var resultado = _mapper.Map<PageList<EventoDto>>(eventos);
+                resultado.PageSize = eventos.PageSize;
+                resultado.CurrentPage = eventos.CurrentPage;
+                resultado.TotalCount = eventos.TotalCount;
+                resultado.TotalPages = eventos.TotalPages;
                 return resultado;
             }
             catch (Exception ex)
@@ -100,36 +105,7 @@ namespace ProAgil.Application
             }
         }
 
-        public async Task<EventoDto[]> GetAllEventosByTemaAsync(int userId, string tema, bool includePalestrate)
-        {
-            try
-            {
-                var eventos = await _eventoPersist.GetAllEventosByTemaAsync(userId, tema, includePalestrate);
-                if (eventos==null) return null;
-                var eventosRetorno = new List<EventoDto>();
-                
-                foreach (var evento in eventos)
-                {
-                    eventosRetorno.Add(new EventoDto(){
-                        Id = evento.Id,
-                        Local = evento.Local,
-                        DataEvento = evento.DataEvento.ToString(),
-                        Tema = evento.Tema,
-                        QtdPessoas = evento.QtdPessoas,
-                        ImagemURL = evento.ImagemURL,
-                        Telefone = evento.Telefone,
-                        Email = evento.Email
-                    });
-                }
-                var resultado = _mapper.Map<EventoDto[]>(eventos);
-                return resultado;
-            }
-            catch (Exception ex)
-            {
-                
-                throw new Exception(ex.Message);
-            }
-        }
+
 
         public async Task<EventoDto> GetEventoByIdAsync(int userId, int EventoId, bool includePalestrate)
         {

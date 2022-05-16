@@ -72,6 +72,25 @@
       </tr>
     </tfoot>
   </table>
+
+  <div class="d-flex justity-content-center">
+    <pagination
+    [boundaryLinks]="true"
+    [totalItems]="pagination.totalItems"
+    [itemsPerPage]="pagination.itemsPerPage"
+    [(ngModel)]="pagination.currentPage"
+    (pageChanged)="pageChanged($event)"
+
+    pageBtnClass="btn"
+
+    previousText=""
+    nextText=""
+    firstText=""
+    lastText="">
+  </pagination>
+
+  </div>
+
   </div>
 
   <ng-template #template>

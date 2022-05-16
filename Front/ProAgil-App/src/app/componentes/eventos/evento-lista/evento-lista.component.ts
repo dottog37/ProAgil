@@ -7,6 +7,7 @@ import { ToastrService } from 'ngx-toastr';
 import { Evento } from '@app/models/Evento';
 import { EventoService } from '@app/services/evento.service';
 import { environment } from '@environments/environment';
+import { PaginatedResult, Pagination } from '@app/models/Pagination';
 
 @Component({
   selector: 'app-evento-lista',
@@ -20,6 +21,7 @@ export class EventoListaComponent implements OnInit {
   exibirImagem: boolean = true;
   filtroLista:string='';
   public eventoId = 0;
+  public pagination = {} as Pagination;
 
   constructor(
     private eventoService: EventoService,
@@ -31,7 +33,8 @@ export class EventoListaComponent implements OnInit {
     ) { }
 
   ngOnInit(): void {
-    this.spinner.show();
+    this.pagination = {currentPage:1, itemsPerPage:3, totalItems:1} as Pagination;
+
     this.carregarEventos();
   }
 
@@ -48,17 +51,19 @@ export class EventoListaComponent implements OnInit {
   }
 
   public carregarEventos(): void {
-
-    this.eventoService.getEventos().subscribe({
-      next: (eventos: Evento[]) =>{
-      this.eventos = eventos;
+    this.spinner.show();
+    this.eventoService.getEventos(this.pagination.currentPage,
+                                  this.pagination.itemsPerPage).subscribe({
+      next: (paginatedResult: PaginatedResult<Evento[]>) =>{
+      this.eventos = paginatedResult.result;
+      this.pagination = paginatedResult.pagination;
       },
       error: (erro:any) => {
         this.spinner.hide();
         this.toastr.error('erro ao carregar', 'erro');
       },
       complete: () => this.spinner.hide()
-});
+    });
 
 
   }
@@ -66,6 +71,11 @@ export class EventoListaComponent implements OnInit {
     event.stopPropagation();
     this.eventoId = eventoId;
     this.modalRef = this.modalService.show(template, {class: 'modal-sm'});
+  }
+
+  public pageChanged(event: any): void {
+      this.pagination.currentPage = event.page;
+      this.carregarEventos();
   }
 
   confirm(): void {

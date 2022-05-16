@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using ProAgil.Application.Dtos;
+using ProAgil.Persistence.Models;
 
 namespace ProAgil.Application.Contratos
 {
@@ -9,8 +10,7 @@ namespace ProAgil.Application.Contratos
          Task<EventoDto> UpdateEvento(int userId, int eventoId, EventoDto model);
          Task<bool> DeleteEvento(int userId, int eventoId);
 
-         Task<EventoDto[]> GetAllEventosByTemaAsync(int userId, string tema, bool includePalestrate = false);
-         Task<EventoDto[]> GetAllEventosAsync(int userId, bool includePalestrate = false);
+         Task<PageList<EventoDto>> GetAllEventosAsync(int userId, PageParams pageParams, bool includePalestrate = false);
          Task<EventoDto> GetEventoByIdAsync(int userId, int EventoId, bool includePalestrate = false);
     }
 }
