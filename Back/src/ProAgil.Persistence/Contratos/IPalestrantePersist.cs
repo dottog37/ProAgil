@@ -1,13 +1,14 @@
 using System.Threading.Tasks;
 using ProAgil.Domain;
+using ProAgil.Persistence.Models;
 
 namespace ProAgil.Persistence.Contratos
 {
-    public interface IPalestrantePersist
+    public interface IPalestrantePersist: IGeralPersist
     {
-         Task<Palestrante[]> GetAllPalestrantesByNomeAsync(string nome, bool includeEventos);
-         Task<Palestrante[]> GetAllPalestrantesAsync(bool includeEventos);
-         Task<Palestrante> GetPalestranteByIdAsync(int PalestranteId, bool includeEventos);
+
+         Task<PageList<Palestrante>> GetAllPalestrantesAsync(PageParams pageParams, bool includeEventos = false);
+         Task<Palestrante> GetPalestranteByUserIdAsync(int UserId, bool includeEventos = false);
 
     }
 }

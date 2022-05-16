@@ -9,6 +9,8 @@ using ProAgil.Application.Contratos;
 using ProAgil.Application.Dtos;
 using System.Security.Claims;
 using ProAgil.API.Extensions;
+using ProAgil.API.Helpers;
+using System;
 
 namespace ProAgil.API.Controllers
 {
@@ -19,11 +21,14 @@ namespace ProAgil.API.Controllers
     {
         private readonly IAccountService accountService;
         private readonly ITokenService tokenService;
+        private readonly IUtil util;
+        private readonly string _destino = "Perfil";
 
-        public AccountController(IAccountService accountService, ITokenService tokenService)
+        public AccountController(IAccountService accountService, ITokenService tokenService, IUtil util)
         {
             this.accountService = accountService;
             this.tokenService = tokenService;
+            this.util = util;
         }
 
         [HttpGet("GetUser/{userName}")]
@@ -134,6 +139,31 @@ namespace ProAgil.API.Controllers
             {
                 return this.StatusCode(StatusCodes.Status500InternalServerError,
                 $"Erro ao tentar atualizar usuario. Erro{ex.Message}");
+            }
+        }
+
+        [HttpPost("upload-image")]
+        public async Task<IActionResult> UploadImage()
+        {
+            try
+            {
+                var user = await accountService.GetUserByUserNameAsync(User.GetUserName());
+                if (user == null)
+                    return NoContent();
+                var file = Request.Form.Files[0];
+                if (file.Length > 0)
+                {
+                    util.DeleteImage(user.ImagemURL, _destino);
+                    user.ImagemURL = await util.SaveImage(file, _destino);
+                }
+                var userRetorno = await accountService.UpdateAccount(user);
+                return Ok(userRetorno);
+            }
+            catch (Exception ex)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError,
+                $"Erro ao tentar carrega imagem. Erro{ex.Message}");
+                throw new Exception(ex.Message);
             }
         }
     }

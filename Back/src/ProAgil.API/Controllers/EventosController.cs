@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ProAgil.API.Extensions;
+using ProAgil.API.Helpers;
 using ProAgil.Application.Contratos;
 using ProAgil.Application.Dtos;
 
@@ -22,16 +23,17 @@ namespace ProAgil.API.Controllers
     public class EventosController : ControllerBase
     {
         private readonly IEventoService eventoService;
-        private readonly IWebHostEnvironment hostEnvironment;
+        private readonly IUtil util;
         private readonly IAccountService accountService;
+        private readonly string _destino = "images";
 
         public EventosController(
                     IEventoService eventoService, 
-                    IWebHostEnvironment hostEnvironment,
+                    IUtil util,
                     IAccountService accountService
                     )
         {
-            this.hostEnvironment = hostEnvironment;
+            this.util = util;
             this.accountService = accountService;
             this.eventoService = eventoService;
 
@@ -108,8 +110,8 @@ namespace ProAgil.API.Controllers
                 var file = Request.Form.Files[0];
                 if (file.Length > 0)
                 {
-                    DeleteImage(evento.ImagemURL);
-                    evento.ImagemURL = await SaveImage(file);
+                    util.DeleteImage(evento.ImagemURL, _destino);
+                    evento.ImagemURL = await util.SaveImage(file, _destino);
                 }
                 var eventoRetorno = await eventoService.UpdateEvento(User.GetUserId(), eventoId, evento);
                 return Ok(eventoRetorno);
@@ -117,7 +119,7 @@ namespace ProAgil.API.Controllers
             catch (Exception ex)
             {
                 return this.StatusCode(StatusCodes.Status500InternalServerError,
-                $"Erro ao tentar adicionar evento. Erro{ex.Message}");
+                $"Erro ao tentar carregar foto do evento. Erro{ex.Message}");
                 throw new Exception(ex.Message);
             }
         }
@@ -151,7 +153,7 @@ namespace ProAgil.API.Controllers
 
                 if (await eventoService.DeleteEvento(User.GetUserId(), id))
                 {
-                    DeleteImage(evento.ImagemURL);
+                    util.DeleteImage(evento.ImagemURL, _destino);
                     return Ok(new { message = "Deletado" });
                 }
                 else
@@ -166,29 +168,7 @@ namespace ProAgil.API.Controllers
                 throw new Exception(ex.Message);
             }
         }
-        [NonAction]
-        public async Task<string> SaveImage(IFormFile imageFile)
-        {
-            string imageName = new String(Path.GetFileNameWithoutExtension(imageFile.FileName)
-                                                .ToArray())
-                                                .Replace(' ','-');
-                                                
-            imageName = $"{imageName}{DateTime.UtcNow.ToString("yymmssfff")}{Path.GetExtension(imageFile.FileName)}";
-
-            var imagePath = Path.Combine(hostEnvironment.ContentRootPath, @"Resources/images", imageName);
-            using (var fileStream = new FileStream(imagePath, FileMode.Create)){
-                await imageFile.CopyToAsync(fileStream);
-            }
-            return imageName;
-        }
-
-        [NonAction]
-        public void DeleteImage(string imageName)
-        {
-            var imagePath = Path.Combine(hostEnvironment.ContentRootPath, @"Resources/images", imageName);
-            if (System.IO.File.Exists(imagePath))
-                System.IO.File.Delete(imagePath);
-        }
+        
     }
 }
 
